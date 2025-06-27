@@ -38,7 +38,7 @@ Create a .env file and configure OpenRouter and GeoApify redentials:
 ```
 OPENROUTER_API_KEY="<your-openrouter-api-key>"
 OPENROUTER_URL="https://openrouter.ai/api/v1/chat/completions"
-OPENROUTER_MODEL="meta-llama/llama-3.3-8b-instruct:free"
+OPENROUTER_MODEL="meta-llama/llama-3.3-70b-instruct:free"
 GEO_KEY="<your-geoapify-api-key>"
 GEO_PLACES_URL="https://api.geoapify.com/v2/places"
 GEO_CODE_URL="https://api.geoapify.com/v1/geocode/search"
