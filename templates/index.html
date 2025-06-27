@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outing Planner</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+        }
+
+        pre {
+            margin: 0;
+            padding: 0;
+            text-indent: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Outing Planner</h1>
+        <form>
+            <div class="form-group">
+                <label for="user-input">Enter your outing plans:</label>
+                <textarea class="form-control" id="user-input" rows="3"></textarea>
+            </div>
+            <button type="button" class="btn btn-primary" id="plan-btn">Plan Outing</button>
+            <div id="loading-indicator" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i> Processing request...
+            </div>
+            <div id="error-message" style="display: none; color: red;"></div>
+        </form>
+        <div id="results"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+        <script>
+        $(document).ready(function () {
+            $('#plan-btn').click(function () {
+                $('#loading-indicator').show();
+                var userInput = $('#user-input').val();
+                $.ajax({
+                    type: 'POST',
+                    url: '/plan_outing',
+                    data: JSON.stringify({ text: userInput }),
+                    contentType: 'application/json',
+                    success: function (data) {
+                        $('#loading-indicator').hide();
+                        if ('error' in data) {
+                            $('#error-message').text(data.error).show();
+                            $('#results').hide();
+                        } else {
+                            $('#error-message').hide();
+                            data.result = JSON.parse(data.result);
+                            var html = `
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h2>Outing Info:</h2>
+                                        <p class="lead">${result.introduction}</p>
+                                        <h5 class="mt-4">Places Summary:</h5>
+                                        <ul class="list-group">
+                            `;
+                            result.places_summary.forEach(place => {
+                                html += `
+                                    <li class="list-group-item">
+                                        <h6 class="mb-1">${place.name}</h6>
+                                        <p class="mb-1">Address: ${place.address}</p>
+                                        <p class="mb-1">Type: ${place.type}</p>
+                                        <p class="mb-1">Description: ${place.description}</p>
+                                        <p class="mb-1">Website: ${place.website}</p>
+                                        <p class="mb-1">Phone: ${place.phone}</p>
+                                        <p class="mb-1">Hours: ${place.hours}</p>
+                                    </li>
+                                `;
+                            });
+                            html += `
+                                    </ul>
+                                    <p class="lead mt-4">${result.conclusion}</p>
+                                </div>
+                            </div>
+                        `;
+                            $('#results').html(html).show();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $('#loading-indicator').hide();
+                        $('#error-message').text('An error occurred: ' + error).show();
+                        $('#results').hide();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
