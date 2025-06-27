@@ -5,6 +5,10 @@ App uses the `meta-llama/llama-3.3-70b-instruct:free` model hosted on [openroute
 
 The APIs on  [GeoApify](https://www.geoapify.com/) are leveraged to provide up to date places information for the user query.
 
+## FlowChart
+![Flowchart](./images/flowchart.png)
+
+
 ## Installation
 
 ### 1. Clone the repository
