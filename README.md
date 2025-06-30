@@ -38,7 +38,7 @@ Sign up and generate API Keys for:
 - [openrouter.ai](https://openrouter.ai/) 
 - [GeoApify](https://www.geoapify.com/)
 #### Setup Environment Variables
-Create a .env file and configure OpenRouter and GeoApify redentials:
+Create a .env file and configure OpenRouter and GeoApify credentials:
 ```
 OPENROUTER_API_KEY="<your-openrouter-api-key>"
 OPENROUTER_URL="https://openrouter.ai/api/v1/chat/completions"
@@ -70,14 +70,14 @@ Expected Sample Response:
 {
   result : {
     "introduction": "Here are some parks near San Jose, California, that are stroller-friendly and have shaded spaces:",
-  "places_summary": [
-    {"name": "Nielsen Park", 
-    "address": "3755, Pleasanton, California, United States of America", 
-    "type": "State Park", 
-    "description": "Stroller-friendly park with wheelchair access and shaded spaces.", 
-    "website": "", 
-    "phone": "", 
-    "hours": ""}],
+    "places_summary": [
+              {"name": "Nielsen Park", 
+              "address": "3755, Pleasanton, California, United States of America", 
+              "type": "State Park", 
+              "description": "Stroller-friendly park with wheelchair access and shaded spaces.", 
+              "website": "", 
+              "phone": "", 
+              "hours": ""}],
   "conclusion": "Enjoy your visit to these wonderful parks!"}
 }
 

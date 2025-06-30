@@ -23,6 +23,7 @@ def plan_outing(req: RequestBody):
         #user_text = "Looking for stroller-friendly parks near San Jose, California with shaded areas."
         output = llm_extract_outing_info(user_text)
         if output is None:
+            logger.error('Failed to extract outing info')
             return {"error": "Failed to extract outing info"}
 
         city = output["city"]
@@ -33,6 +34,7 @@ def plan_outing(req: RequestBody):
         lat, lon = geocode(city, state)
         logger.info(f'Geocoded lat: {lat}, lon: {lon}')
         if lat is None or lon is None:
+            logger.error('Failed to geocode city and state')
             return {"error": "Failed to geocode city and state"}
 
         output["lat"] = lat
@@ -45,29 +47,36 @@ def plan_outing(req: RequestBody):
         places = geo_get_places(lat, lon, distance)
         logger.info(f'Got places: {places}')
         if places is None or len(places) == 0:
+            logger.error('Failed to get places')
             return {"error": "Failed to get places"}
 
         # Summarize places
         places_summary = llm_summarize_places(user_text, places)
         logger.info(f'Summarized places: {places_summary}')
         if places_summary is None:
+            logger.error('Failed to summarize places')
             return {"error": "Failed to summarize places"}
 
         return {"result": places_summary}
 
     except KeyError as e:
+        logger.error(f'Missing key in output: {e}')
         return {"error": f"Missing key in output: {e}"}
     except Exception as e:
+        logger.error(f'An error occurred: {e}')
         return {"error": f"An error occurred: {e}"}
 
 
 @app.get("/")
 def start(request: Request):
     try:
+        logger.info('Serving index page')
         return templates.TemplateResponse("index.html", {"request": request})
     except Exception as e:
+        logger.error(f'An error occurred: {e}')
         return {"error": f"An error occurred: {e}"}
 
 if __name__ == "__main__":  
+    logger.info('Starting server')
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
     
