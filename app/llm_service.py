@@ -4,39 +4,52 @@ from config import Config
 import logging
 import json
 
-def make_llm_request(prompt, model=Config.OPENROUTER_MODEL):
-    try:
-        headers = {
-            "Authorization": f"Bearer {Config.OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-        }
-        data = json.dumps({
-            "model": model,
-            "messages": [
-              {
-                "role": "user",
-                "content": prompt
-              }
-            ],
-        })
-        response = requests.post(
-            url=Config.OPENROUTER_URL,
-            headers=headers,
-            data=data
-        )
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        result = response.json()["choices"][0]["message"]["content"]
-        return result
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Failed to make LLM request: {e}")
-        return None
-    except json.JSONDecodeError as e:
-        logging.error(f"Failed to parse JSON response: {e}")
-        return None
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
-        return None
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class LLMService:
+    def __init__(self):
+        self.models = [Config.OPENROUTER_DEEPSEEK_MODEL, Config.OPENROUTER_MISTRAL_MODEL, Config.OPENROUTER_META_LLAMA_MODEL]
+        self.model_index = 0
+
+    def make_llm_request(self, prompt):
+        try:
+            # cycle through models to avoid rate limits
+            model = self.models[self.model_index]
+            self.model_index = (self.model_index + 1) % len(self.models)
+            logger.info(f"Using model: {model}")
+            headers = {
+                "Authorization": f"Bearer {Config.OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+            }
+            data = json.dumps({
+                "model": model,
+                "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+                ],
+            })
+            response = requests.post(
+                url=Config.OPENROUTER_URL,
+                headers=headers,
+                data=data
+            )
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            result = response.json()["choices"][0]["message"]["content"]
+            return result
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Failed to make LLM request: {e}")
+            return None
+        except json.JSONDecodeError as e:
+            logging.error(f"Failed to parse JSON response: {e}")
+            return None
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+            return None
     
+llm_service = LLMService()
 
 def llm_extract_outing_info(user_input):
     prompt = f""" 
@@ -64,7 +77,7 @@ def llm_extract_outing_info(user_input):
                     Only respond with the above JSON, do not explain or include any new information and do not include backticks.
             """
     
-    result = make_llm_request(prompt)
+    result = llm_service.make_llm_request(prompt)
     if result:
         return dict(json.loads(result))
     else:
@@ -96,7 +109,7 @@ def llm_summarize_places(user_input, places):
                     User input:
                     "{user_input}"
             """
-    result = make_llm_request(prompt)
+    result = llm_service.make_llm_request(prompt)
     if result:
         return result
     else:

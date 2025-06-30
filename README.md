@@ -1,7 +1,7 @@
 # Outing Planner
 Python Fast-API application that uses GenAI to recommend outing plans based on user input.
 
-App uses the `meta-llama/llama-3.3-70b-instruct:free` model hosted on [openrouter.ai](https://openrouter.ai/)  to parse location info from user input and to generate natural language summaries from JSON data. 
+App uses  free-tier models hosted on [openrouter.ai](https://openrouter.ai/)  to parse location info from user input and to generate natural language summaries from JSON data. 
 
 The APIs on  [GeoApify](https://www.geoapify.com/) are leveraged to provide up to date places information for the user query.
 
@@ -42,7 +42,7 @@ Create a .env file and configure OpenRouter and GeoApify redentials:
 ```
 OPENROUTER_API_KEY="<your-openrouter-api-key>"
 OPENROUTER_URL="https://openrouter.ai/api/v1/chat/completions"
-OPENROUTER_MODEL="meta-llama/llama-3.3-70b-instruct:free"
+OPENROUTER_*_MODEL="<your-choice-of-model/s>"
 GEO_KEY="<your-geoapify-api-key>"
 GEO_PLACES_URL="https://api.geoapify.com/v2/places"
 GEO_CODE_URL="https://api.geoapify.com/v1/geocode/search"
@@ -64,6 +64,21 @@ Method: POST
 Header: Content-Type: application/json
 Body: {
   "text": "I am looking for county or state parks near San Jose California that are stroller friendly and have shaded spaces"
+}
+
+Expected Sample Response: 
+{
+  result : {
+    "introduction": "Here are some parks near San Jose, California, that are stroller-friendly and have shaded spaces:",
+  "places_summary": [
+    {"name": "Nielsen Park", 
+    "address": "3755, Pleasanton, California, United States of America", 
+    "type": "State Park", 
+    "description": "Stroller-friendly park with wheelchair access and shaded spaces.", 
+    "website": "", 
+    "phone": "", 
+    "hours": ""}],
+  "conclusion": "Enjoy your visit to these wonderful parks!"}
 }
 
 ```

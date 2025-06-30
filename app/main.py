@@ -5,6 +5,10 @@ from fastapi.templating import Jinja2Templates
 from datatypes import RequestBody
 from app_service import geocode, geo_get_places
 from llm_service import llm_extract_outing_info, llm_summarize_places
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -14,7 +18,7 @@ templates = Jinja2Templates(directory="templates")
 def plan_outing(req: RequestBody):
     try:
         user_text = req.text
-
+        logger.info(f'Received user input: {user_text}')
         # Use LLM to extract outing info from user text. Example usage
         #user_text = "Looking for stroller-friendly parks near San Jose, California with shaded areas."
         output = llm_extract_outing_info(user_text)
@@ -24,9 +28,10 @@ def plan_outing(req: RequestBody):
         city = output["city"]
         state = output["state"]
         drive_time_max = output["drive_time_max"]
-
+        logger.info(f'Extracted city: {city}, state: {state}, drive_time_max: {drive_time_max}, user_text: {user_text}')
         # Obtain lat and long from city and state
         lat, lon = geocode(city, state)
+        logger.info(f'Geocoded lat: {lat}, lon: {lon}')
         if lat is None or lon is None:
             return {"error": "Failed to geocode city and state"}
 
@@ -38,11 +43,13 @@ def plan_outing(req: RequestBody):
             drive_time_max = 45
         distance = drive_time_max * 60 * 12.5 #assume 12.5 m/s avg speed * 60 seconds per minute
         places = geo_get_places(lat, lon, distance)
+        logger.info(f'Got places: {places}')
         if places is None or len(places) == 0:
             return {"error": "Failed to get places"}
 
         # Summarize places
         places_summary = llm_summarize_places(user_text, places)
+        logger.info(f'Summarized places: {places_summary}')
         if places_summary is None:
             return {"error": "Failed to summarize places"}
 

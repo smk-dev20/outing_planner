@@ -59,7 +59,7 @@
                             $('#results').hide();
                         } else {
                             $('#error-message').hide();
-                            data.result = JSON.parse(data.result);
+                            var result = JSON.parse(data.result);
                             var html = `
                                 <div class="card">
                                     <div class="card-body">
