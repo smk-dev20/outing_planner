@@ -7,7 +7,7 @@ from app_service import geocode, geo_get_places
 from llm_service import llm_extract_outing_info, llm_summarize_places
 import logging
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
@@ -22,20 +22,23 @@ def plan_outing(req: RequestBody):
         # Use LLM to extract outing info from user text. Example usage
         #user_text = "Looking for stroller-friendly parks near San Jose, California with shaded areas."
         output = llm_extract_outing_info(user_text)
-        if output is None:
+        if output is None or len(output) == 0:
             logger.error('Failed to extract outing info')
-            return {"error": "Failed to extract outing info"}
+            return {"error": "Something went wrong, please try again"}
 
         city = output["city"]
         state = output["state"]
         drive_time_max = output["drive_time_max"]
+        if city is None or state is None:
+            logger.error('Failed to extract city and state')
+            return {"error": "Something went wrong, please try again:"}
         logger.info(f'Extracted city: {city}, state: {state}, drive_time_max: {drive_time_max}, user_text: {user_text}')
         # Obtain lat and long from city and state
         lat, lon = geocode(city, state)
         logger.info(f'Geocoded lat: {lat}, lon: {lon}')
         if lat is None or lon is None:
             logger.error('Failed to geocode city and state')
-            return {"error": "Failed to geocode city and state"}
+            return {"error": "Something went wrong, please try again:"}
 
         output["lat"] = lat
         output["lon"] = lon
@@ -48,23 +51,23 @@ def plan_outing(req: RequestBody):
         logger.info(f'Got places: {places}')
         if places is None or len(places) == 0:
             logger.error('Failed to get places')
-            return {"error": "Failed to get places"}
+            return {"error": "Something went wrong, please try again:"}
 
         # Summarize places
         places_summary = llm_summarize_places(user_text, places)
         logger.info(f'Summarized places: {places_summary}')
         if places_summary is None:
             logger.error('Failed to summarize places')
-            return {"error": "Failed to summarize places"}
+            return {"error": "Something went wrong, please try again:"}
 
         return {"result": places_summary}
 
     except KeyError as e:
         logger.error(f'Missing key in output: {e}')
-        return {"error": f"Missing key in output: {e}"}
+        return {"error": f"Something went wrong, please try again"}
     except Exception as e:
         logger.error(f'An error occurred: {e}')
-        return {"error": f"An error occurred: {e}"}
+        return {"error": f"Something went wrong, please try again"}
 
 
 @app.get("/")
@@ -74,7 +77,7 @@ def start(request: Request):
         return templates.TemplateResponse("index.html", {"request": request})
     except Exception as e:
         logger.error(f'An error occurred: {e}')
-        return {"error": f"An error occurred: {e}"}
+        return {"error": "Something went wrong, please try again:"}
 
 if __name__ == "__main__":  
     logger.info('Starting server')
